@@ -1,4 +1,3 @@
-cat ./check_snmp_cdp-neighbor-fix-config.sh
 #!/bin/sh
 #
 #---------------------------------------------#
@@ -28,16 +27,25 @@ DeviceType=( $(snmpbulkwalk -t 1 -r 0 -v2c -Oqn -c $community $host .1.3.6.1.4.1
 IfIndex=( $(snmpbulkwalk -t 1 -r 0 -v2c -Oqn -c $community $host .1.3.6.1.4.1.9.9.23.1.2.1.1.6 | awk -F "." '{print $16}') )
 RemoteDevice=( $( snmpbulkwalk -t 1 -r 0 -v2c -Oqn -c $community $host .1.3.6.1.4.1.9.9.23.1.2.1.1.6 | awk -F "\"" '{print $2}' | awk -F "." '{print $1}') )
 fi
+echo ""
+echo ""
 echo "ssh ${sysName}"
+echo ""
+echo ""
 echo "conf t"
 echo "!"
 for ((i=0; i<${#IfIndex[@]}; i++)); do
   ifDescr[$i]=$(snmpwalk -t 1 -r 0 -v2c -Oqn -c $community $host .1.3.6.1.2.1.2.2.1.2.${IfIndex[$i]}  | awk -F " " '{print $2}' | sed "s/ /\-/g" )
-  location[$i]=$(snmpbulkwalk -t 1 -r 0 -v2c -Oqn -c $community ${RemoteDevice[$i]} location | awk -F " " '{print $2}' | sed "s/ /\-/g" )
+  location[$i]=$(snmpbulkwalk -t 1 -r 0 -v2c -Oqn -c $community ${RemoteDevice[$i]} location 2> grep-errors.txt | awk -F " " '{print $2}' | sed "s/ /\-/g" )
+ 
+# if [[ ${location[$i]} == "snmpbulkwalk: Unknown host" ]] ; then
+#  location[$i]=""
+#  fi
 #  echo "${sysName} : ${ifDescr[$i]} is connected to ${RemoteDevice[$i]} : ${RemoteInterface[$i]}  Device type:  ${DeviceType[$i]}"
   echo "!"
   echo "interface ${ifDescr[$i]}"
-  echo "description TRK;${RemoteDevice[$i]};${RemoteInterface[$i]};${DeviceType[$i]};${location[$i]}"
+
+echo "description TRK;${RemoteDevice[$i]};${RemoteInterface[$i]};${DeviceType[$i]};${location[$i]}"
   echo "exit"
   echo "!"
 done
@@ -52,7 +60,10 @@ echo "write-memory"
 
 echo "end"
 echo "write"
+echo ""
 echo "quit"
+echo ""
+echo ""
   exit 0
 fi
 
