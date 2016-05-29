@@ -11,6 +11,7 @@
 # physical links should exist between the host and the neighbor.
 #
 # Added Interfacename
+# last modified by Håkan Hammarin 20160529
 
 community=$1
 host=$2
