@@ -11,11 +11,11 @@
 # physical links should exist between the host and the neighbor.
 #
 # Added Interfacename
-# last modified by Håkan Hammarin 20160529
 
 community=$1
 host=$2
 action=$3
+domainsuffix=net.intern.hoglandet.se
 
 if [[ $4 -lt '1' ]] ; then
   count='1'
@@ -47,7 +47,8 @@ fi
 
 for ((i=0; i<${#IfIndex[@]}; i++)); do
   ifDescr[$i]=$(snmpwalk -t 1 -r 0 -v2c -Oqn -c $community $host .1.3.6.1.2.1.2.2.1.2.${IfIndex[$i]}  | awk -F " " '{print $2}' | sed "s/ /\-/g" )
-  echo "${sysName} : ${ifDescr[$i]} is connected to ${RemoteDevice[$i]} : ${RemoteInterface[$i]}  Device type:  ${DeviceType[$i]}"
+location[$i]=$(snmpbulkwalk -t 1 -r 0 -v2c -Oqn -c $community ${RemoteDevice[$i]}.$domainsuffix location 2> /dev/null | awk -F " " '{print $2}' | sed "s/ /\-/g" )
+  echo "${sysName} : ${ifDescr[$i]} is connected to ${RemoteDevice[$i]} : ${RemoteInterface[$i]}  Device type:  ${DeviceType[$i]}  Location: ${location[$i]}"
 done
 
   exit 0
@@ -68,3 +69,4 @@ else
   echo "Critical: No link up to $action"
   exit 2
 fi
+
